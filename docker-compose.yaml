@@ -26,6 +26,5 @@ services:
       DB_HOST: chat-pg-local
     networks:
       - chatNetworkLocal
-
 networks:
   chatNetworkLocal:
