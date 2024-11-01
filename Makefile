@@ -1,3 +1,5 @@
+include local.env
+
 LOCAL_BIN:=$(CURDIR)/bin
 
 install-golangci-lint:
@@ -5,6 +7,10 @@ install-golangci-lint:
 
 lint:
 	$(LOCAL_BIN)/golangci-lint run ./... --config .golangci.pipeline.yaml
+
+install-goose:
+	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.22.1
+
 
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
@@ -19,6 +25,7 @@ get-deps:
 		go get google.golang.org/grpc/codes
 		go get google.golang.org/grpc/status
 		 go get github.com/brianvoe/gofakeit
+		 go get github.com/jackc/pgx/v5
 
 
 generate:
@@ -32,3 +39,12 @@ generate-chat-api:
 	--go-grpc_out=pkg/chat_v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 	api/chat_v1/chat.proto
+
+migrations-up :
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(MIGRATION_DSN_L) ./bin/goose -dir migrations up -v
+migrations-down:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING=$(MIGRATION_DSN_L) ./bin/goose -dir migrations down -v
+
+docker-postgres:
+	 docker run  --rm -d --name DB -e POSTGRES_PASSWORD=password -e POSTGRES_DB=db-chat -p 54341:5432 postgres:14-alpine3.20
+	 docker build --tag chat_migrator_image -f  migration_local.Dockerfile .
