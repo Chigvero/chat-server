@@ -1,0 +1,31 @@
+version: "3.9"
+
+volumes:
+  chat-pg-local:
+  chat-pg-prod :
+
+services:
+
+  chat-pg-local:
+    image: postgres:14-alpine3.20
+    env_file: local.env
+    ports:
+      - "54341:5432"
+    volumes:
+      - chat-pg-local:/var/lib/postgresql/data
+    networks:
+      - chatNetworkLocal
+
+  chat-migrator-local:
+    depends_on:
+      - chat-pg-local
+    build:
+      context: .
+      dockerfile: migration_local.Dockerfile
+    environment:
+      DB_HOST: chat-pg-local
+    networks:
+      - chatNetworkLocal
+
+networks:
+  chatNetworkLocal:
