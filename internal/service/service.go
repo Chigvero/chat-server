@@ -1,6 +1,7 @@
 package service
 
 import (
+	"chat-server/internal/entities"
 	"chat-server/internal/repository"
 	"chat-server/internal/service/chat_v1"
 	"context"
@@ -9,7 +10,7 @@ import (
 type ChatService interface {
 	Create(ctx context.Context, usrs []string) (int64, error)
 	Delete(ctx context.Context, id int64) error
-	SendMessage(ctx context.Context)
+	SendMessage(ctx context.Context, message entities.SendMessage) error
 }
 
 type Service struct {

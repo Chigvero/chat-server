@@ -1,6 +1,7 @@
 package chat_v1
 
 import (
+	"chat-server/internal/entities"
 	"chat-server/internal/repository"
 	"context"
 )
@@ -21,4 +22,6 @@ func (s *ChatService) Create(ctx context.Context, usrs []string) (int64, error) 
 func (s *ChatService) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
-func (s *ChatService) SendMessage(ctx context.Context) {}
+func (s *ChatService) SendMessage(ctx context.Context, message entities.SendMessage) error {
+	return s.repo.SendMessage(ctx, message)
+}

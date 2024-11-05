@@ -14,7 +14,7 @@ CREATE TABLE chatUsers(
 CREATE TABLE messages(
     id serial,
     chat_id int references chats(id),
-    from_user_id int ,
+    from_user_name varchar ,
     message_text TEXT,
     timestamp TIMESTAMP
 );

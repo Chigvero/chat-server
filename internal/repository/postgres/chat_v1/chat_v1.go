@@ -1,6 +1,7 @@
 package chat_v1
 
 import (
+	"chat-server/internal/entities"
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
@@ -58,12 +59,24 @@ func (r *ChatPostgres) Create(ctx context.Context, usrs []string) (int64, error)
 }
 
 func (r *ChatPostgres) Delete(ctx context.Context, id int64) error {
+	var err, err2 error
 	tx, err2 := r.DB.Begin(ctx)
 	if err2 != nil {
 		return err2
 	}
+	deleteChatUsersExec := fmt.Sprintf("DELETE FROM %s WHERE chat_id=$1", chatUsersTable)
+	rowsAffected, err := tx.Exec(ctx, deleteChatUsersExec, id)
+	fmt.Println(rowsAffected)
+	if err != nil {
+		err2 = tx.Rollback(ctx)
+		if err2 != nil {
+			return err2
+		}
+		return err
+	}
+
 	deleteChatExec := fmt.Sprintf("DELETE FROM %s WHERE id=$1", chatsTable)
-	_, err := tx.Exec(ctx, deleteChatExec, id)
+	_, err = tx.Exec(ctx, deleteChatExec, id)
 	if err != nil {
 		err2 = tx.Rollback(ctx)
 		if err2 != nil {
@@ -71,21 +84,14 @@ func (r *ChatPostgres) Delete(ctx context.Context, id int64) error {
 		}
 		return err
 	}
-	deleteChatUsersExec := fmt.Sprintf("DELETE FROM %s id=$1", chatUsersTable)
-	_, err = tx.Exec(ctx, deleteChatUsersExec, id)
-	if err != nil {
-		err2 = tx.Rollback(ctx)
-		if err2 != nil {
-			return err2
-		}
-		return err
-	}
+
 	err2 = tx.Commit(ctx)
 	if err2 != nil {
 		return err2
 	}
 	return nil
 }
-func (r *ChatPostgres) SendMessage(ctx context.Context) {
-
+func (r *ChatPostgres) SendMessage(ctx context.Context, message entities.SendMessage) error {
+	//sendMessageQuery:=fmt.Sprintf("INSERT INTO %s(chat_id,from_user_name,message_text,timestamp)")
+	return nil
 }

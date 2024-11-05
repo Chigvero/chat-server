@@ -1,6 +1,7 @@
 package chat_v1
 
 import (
+	"chat-server/internal/converter"
 	"chat-server/internal/service"
 	"context"
 	"errors"
@@ -41,15 +42,13 @@ func (im *Implementation) Delete(ctx context.Context, r *desc.DeleteRequest) (*e
 	}
 	err := im.service.ChatService.Delete(ctx, id)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	return &empty.Empty{}, nil
 }
-func (im *Implementation) SendMessage(_ context.Context, r *desc.SendMessageRequest) (*empty.Empty, error) {
-	log.Println(desc.SendMessageRequest{
-		From:      r.GetFrom(),
-		Text:      r.GetText(),
-		Timestamp: r.GetTimestamp(),
-	})
+func (im *Implementation) SendMessage(ctx context.Context, r *desc.SendMessageRequest) (*empty.Empty, error) {
+	_ = converter.ToSendMessage(*r)
+
 	return nil, nil
 }
