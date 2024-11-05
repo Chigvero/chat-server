@@ -1,14 +1,18 @@
 package main
 
 import (
-	"context"
+	"chat-server/internal/api/chat_v1"
+	"chat-server/internal/repository"
+	"chat-server/internal/service"
 	"fmt"
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
+	"golang.org/x/net/context"
 	"log"
 	"net"
+	"os"
 
 	desc "github.com/Chigvero/chat-server/pkg/chat_v1"
-	"github.com/brianvoe/gofakeit"
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -18,40 +22,35 @@ const (
 	grpcPort = 50050
 )
 
-type server struct {
-	desc.UnimplementedChatV1Server
-}
-
 func main() {
+	//server ready
+	err := godotenv.Load("local.env")
+	if err != nil {
+		log.Fatal(err)
+	}
+	connStr := os.Getenv("MIGRATION_DSN_L")
+	if len(connStr) == 0 {
+		log.Fatalf("Len connstr is 0")
+	}
+	ctx := context.Background()
+	pgxConn, err := pgx.Connect(ctx, connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repo := repository.NewRepository(pgxConn)
+	services := service.NewService(repo)
+	implemTransport := chat_v1.NewImplementation(services)
+
+	//Server starting
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s%d", grpcHost, grpcPort))
 	if err != nil {
 		log.Fatalf("Error with listnening:%v\n", err)
 	}
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterChatV1Server(s, &server{})
+	desc.RegisterChatV1Server(s, implemTransport)
 	err = s.Serve(lis)
 	if err != nil {
 		log.Fatalf("failed to listen:%v\n", err)
 	}
-}
-
-func (s *server) Create(_ context.Context, r *desc.CreateRequest) (*desc.CreateResponse, error) {
-	log.Println(r.GetUsernames())
-	return &desc.CreateResponse{
-		Id: gofakeit.Int64(),
-	}, nil
-}
-
-func (s *server) Delete(_ context.Context, r *desc.DeleteRequest) (*empty.Empty, error) {
-	log.Println(r.GetId())
-	return &empty.Empty{}, nil
-}
-func (s *server) SendMessage(_ context.Context, r *desc.SendMessageRequest) (*empty.Empty, error) {
-	log.Println(desc.SendMessageRequest{
-		From:      r.GetFrom(),
-		Text:      r.GetText(),
-		Timestamp: r.GetTimestamp(),
-	})
-	return nil, nil
 }

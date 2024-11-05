@@ -7,8 +7,8 @@ import (
 )
 
 type ChatRepository interface {
-	Create(ctx context.Context)
-	Delete(ctx context.Context)
+	Create(ctx context.Context, usrs []string) (int64, error)
+	Delete(ctx context.Context, id int64) error
 	SendMessage(ctx context.Context)
 }
 

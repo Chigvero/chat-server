@@ -7,8 +7,8 @@ CREATE TABLE chats(
 );
 CREATE TABLE chatUsers(
     chat_id int references chats(id),
-    user_id int,
-    primary key (chat_id,user_id)
+    user_name varchar(30),
+    primary key (chat_id,user_name)
 );
 
 CREATE TABLE messages(
@@ -27,3 +27,4 @@ drop table chatUsers;
 drop table chats;
 SELECT 'down SQL query';
 -- +goose StatementEnd
+
