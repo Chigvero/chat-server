@@ -2,19 +2,18 @@ package main
 
 import (
 	"chat-server/internal/api/chat_v1"
+	"chat-server/internal/config"
+	"chat-server/internal/config/env"
 	"chat-server/internal/repository"
 	"chat-server/internal/service"
-	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
-	"golang.org/x/net/context"
-	"log"
-	"net"
-	"os"
-
+	"flag"
 	desc "github.com/Chigvero/chat-server/pkg/chat_v1"
+	"github.com/jackc/pgx/v5"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"log"
+	"net"
 )
 
 const (
@@ -22,18 +21,31 @@ const (
 	grpcPort = 50050
 )
 
+var configString string
+
+func init() {
+	flag.StringVar(&configString, "config", ".env", "to specify the config file")
+}
+
 func main() {
-	//server ready
-	err := godotenv.Load("local.env")
+	//config ready
+	flag.Parse()
+	err := config.Load(configString)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error with loading configPath:%v\n", err)
 	}
-	connStr := os.Getenv("MIGRATION_DSN_L")
-	if len(connStr) == 0 {
-		log.Fatalf("Len connstr is 0")
+	pgConfig, err := env.NewPgConfig()
+	if err != nil {
+		log.Fatalf("failed to get grpcConfig:%v", err)
 	}
+	grpcConfig, err := env.NewGRPCConfig()
+	if err != nil {
+		log.Fatalf("failed to get grpcConfig:%v", err)
+	}
+
+	//server ready
 	ctx := context.Background()
-	pgxConn, err := pgx.Connect(ctx, connStr)
+	pgxConn, err := pgx.Connect(ctx, pgConfig.DSN())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +54,7 @@ func main() {
 	implemTransport := chat_v1.NewImplementation(services)
 
 	//Server starting
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s%d", grpcHost, grpcPort))
+	lis, err := net.Listen("tcp", grpcConfig.Address())
 	if err != nil {
 		log.Fatalf("Error with listnening:%v\n", err)
 	}

@@ -26,5 +26,14 @@ services:
       DB_HOST: chat-pg-local
     networks:
       - chatNetworkLocal
+
+#  chat-local:
+#    depends_on:
+#      - chat-pg-local
+#      - chat-migrator-local
+#    build:
+#      context: .
+#      dockerfile:
+
 networks:
   chatNetworkLocal:
