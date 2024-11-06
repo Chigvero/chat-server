@@ -10,7 +10,7 @@ func ToSendMessage(m desc.SendMessageRequest) entities.SendMessage {
 	return entities.SendMessage{
 		FromUserName: m.From,
 		MessageText:  m.Text,
-		Timestamp:    m.Timestamp.AsTime(),
+		Timestamp:    m.GetTimestamp().AsTime(),
 	}
 }
 

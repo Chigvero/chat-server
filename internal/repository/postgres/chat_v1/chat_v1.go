@@ -11,6 +11,7 @@ import (
 const (
 	chatsTable     = "chats"
 	chatUsersTable = "chatUsers"
+	tableMessages  = "messages"
 )
 
 type ChatPostgres struct {
@@ -92,6 +93,9 @@ func (r *ChatPostgres) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 func (r *ChatPostgres) SendMessage(ctx context.Context, message entities.SendMessage) error {
-	//sendMessageQuery:=fmt.Sprintf("INSERT INTO %s(chat_id,from_user_name,message_text,timestamp)")
-	return nil
+	sendMessageQuery := fmt.Sprintf("INSERT INTO %s(chat_id,from_user_name,message_text,timestamp) VALUES($1,$2,$3,$4)", tableMessages)
+	message.ChatId = 1
+	fmt.Println(message.ChatId)
+	_, err := r.DB.Exec(ctx, sendMessageQuery, message.ChatId, message.FromUserName, message.MessageText, message.Timestamp)
+	return err
 }

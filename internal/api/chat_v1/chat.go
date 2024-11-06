@@ -5,6 +5,7 @@ import (
 	"chat-server/internal/service"
 	"context"
 	"errors"
+	"fmt"
 	desc "github.com/Chigvero/chat-server/pkg/chat_v1"
 	"github.com/golang/protobuf/ptypes/empty"
 	"log"
@@ -47,8 +48,13 @@ func (im *Implementation) Delete(ctx context.Context, r *desc.DeleteRequest) (*e
 	}
 	return &empty.Empty{}, nil
 }
-func (im *Implementation) SendMessage(ctx context.Context, r *desc.SendMessageRequest) (*empty.Empty, error) {
-	_ = converter.ToSendMessage(*r)
-
-	return nil, nil
+func (im *Implementation) SendMessage(ctx context.Context, req *desc.SendMessageRequest) (*empty.Empty, error) {
+	msg := converter.ToSendMessage(*req)
+	fmt.Println(msg)
+	err := im.service.ChatService.SendMessage(ctx, msg)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &empty.Empty{}, nil
 }
